@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="690" viewBox="0 0 1200 690" role="img" aria-labelledby="title desc">
+  <title id="title">Direct-mapped cache controller block diagram</title>
+  <desc id="desc">A processor-side read request enters a cache controller. The address decoder selects a line in data, tag, and valid storage. On a miss, the controller requests a block from main memory and refills the line.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#344256" stroke-width="2"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.panel{fill:#fff;stroke:#31435f;stroke-width:2}.cache{fill:#edf5ff;stroke:#2864aa;stroke-width:2}.mem{fill:#eff9ef;stroke:#3d7e48;stroke-width:2}.ttl{font:700 29px Arial,sans-serif;fill:#172338}.head{font:700 20px Arial,sans-serif;fill:#172338}.body{font:16px Arial,sans-serif;fill:#26354a}.small{font:14px Arial,sans-serif;fill:#26354a}.line{stroke:#344256;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.dash{stroke:#59738e;stroke-width:2;stroke-dasharray:8 6;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="690"/>
+  <text class="ttl" x="50" y="56">Direct-Mapped Cache Controller — Phase I</text>
+  <text class="body" x="50" y="86">1 KB cache · 16-byte blocks · 64 lines · aligned 32-bit reads</text>
+
+  <rect class="panel" x="45" y="220" width="190" height="150" rx="12"/>
+  <text class="head" x="76" y="258">Requester</text>
+  <text class="body" x="67" y="291">read address</text>
+  <text class="body" x="67" y="320">read data + hit</text>
+
+  <rect class="cache" x="310" y="145" width="570" height="355" rx="15"/>
+  <text class="head" x="340" y="184">Cache controller</text>
+  <rect class="panel" x="340" y="207" width="200" height="105" rx="9"/>
+  <text class="head" x="358" y="241">Address decoder</text>
+  <text class="small" x="357" y="269">tag [31:10] · index [9:4]</text>
+  <text class="small" x="357" y="291">offset [3:0]</text>
+  <rect class="panel" x="585" y="207" width="260" height="105" rx="9"/>
+  <text class="head" x="606" y="241">Line storage</text>
+  <text class="body" x="605" y="270">data + tag + valid bit</text>
+  <text class="small" x="605" y="292">64 × 16-byte blocks</text>
+  <rect class="panel" x="340" y="365" width="505" height="100" rx="9"/>
+  <text class="head" x="360" y="400">Control FSM and tag comparison</text>
+  <text class="body" x="360" y="430">IDLE → LOOKUP → MISS_REQUEST → MISS_WAIT</text>
+
+  <rect class="mem" x="950" y="220" width="205" height="150" rx="12"/>
+  <text class="head" x="977" y="259">Main memory</text>
+  <text class="body" x="974" y="291">16-byte block</text>
+  <text class="small" x="975" y="319">3-cycle test model</text>
+
+  <path class="line" d="M235 262 H310"/>
+  <text class="small" x="243" y="245">request</text>
+  <path class="line" d="M310 338 H235"/>
+  <text class="small" x="245" y="360">response</text>
+  <path class="line" d="M540 259 H585"/>
+  <path class="dash" d="M715 312 V365"/>
+  <path class="line" d="M880 255 H950"/>
+  <text class="small" x="884" y="236">miss request</text>
+  <path class="line" d="M950 330 H880"/>
+  <text class="small" x="892" y="352">block refill</text>
+
+  <rect class="panel" x="45" y="555" width="1110" height="92" rx="10"/>
+  <text class="head" x="70" y="590">Hit:</text><text class="body" x="120" y="590">valid line + matching tag → return cached word</text>
+  <text class="head" x="70" y="621">Miss:</text><text class="body" x="129" y="621">request aligned block → replace indexed line → return requested word</text>
+</svg>
