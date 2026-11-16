@@ -2,9 +2,15 @@
 
 This repository contains a **read-only, direct-mapped cache controller** written in SystemVerilog, a simulated main memory, and a self-checking testbench. It is the Phase I prototype for the Modern Computer Architecture project.
 
-![Architecture block diagram](docs/cache_block_diagram.svg)
+![Architecture block diagram](docs/cache_block_diagram.png)
 
-A PNG copy for slides and documents is at `docs/cache_block_diagram.png`.
+## Submission materials
+
+- [Prototype video — 2 minutes 53 seconds](video/mca-phase1.mp4)
+- [Phase I report PDF](report/Phase_I_IEEE_Report_With_Group_Names.pdf)
+- [Editable Phase I report](report/Phase_I_IEEE_Report_With_Group_Names.docx)
+
+The report is the current team-supplied draft. Its controller-state description and contribution statements need to be checked against the completed implementation before final submission.
 
 ## Configuration
 
@@ -69,15 +75,14 @@ Run `make synth` to synthesize the cache modules with Yosys. The current generic
 | `rtl/direct_mapped_cache.sv` | Synthesizable controller and memory interface |
 | `tb/main_memory_model.sv` | Testbench-only memory with fixed latency |
 | `tb/tb_direct_mapped_cache.sv` | Self-checking directed and trace tests |
-| `docs/cache_block_diagram.svg` | Architecture diagram for the report/video |
-| `docs/cache_block_diagram.png` | Raster copy for slides and documents |
+| `docs/cache_block_diagram.png` | Architecture diagram for the report/video |
 | `docs/address_breakdown.png` | 32-bit address-field diagram for the video/report |
-| `docs/video_title.png` | Title slide with all five team members |
-| `docs/VIDEO_SCREEN_PLAN.md` | Speaker-by-speaker recording guide |
-| `docs/PHASE1_HANDOFF.md` | Report plan, video script, submission checklist |
+| `report/` | Team-supplied report in PDF and editable DOCX formats |
+| `video/mca-phase1.mp4` | Recorded prototype demonstration |
 | `results/simulation.log` | Recorded passing simulation output |
 | `results/cache.vcd` | Waveform from the test run |
 | `results/synthesis_summary.md` | Generic synthesis result and limitations |
+| `results/synthesis.log` | Full generic synthesis output |
 
 ## Scope and next phase
 
@@ -85,9 +90,7 @@ Phase I implements reads, lookup, valid-bit handling, block refill, hit/miss sta
 
 ## Team information
 
-Add each member's actual contribution, the report PDF, and the prototype video link here before submission. Each member should commit their own work so the repository history reflects the work accurately.
+Each member should commit their own meaningful work so the repository history reflects the work accurately.
 
 - **Members:** Naman Jain, Kavya Jain, Akhilesh Kumar, Lakshay Agrawal, Dhruv Ramani.
-- **Phase I report:** Add the file and link here.
-- **Prototype video:** Add the shareable video link here.
 
