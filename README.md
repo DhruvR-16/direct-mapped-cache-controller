@@ -71,6 +71,9 @@ Run `make synth` to synthesize the cache modules with Yosys. The current generic
 | `tb/tb_direct_mapped_cache.sv` | Self-checking directed and trace tests |
 | `docs/cache_block_diagram.svg` | Architecture diagram for the report/video |
 | `docs/cache_block_diagram.png` | Raster copy for slides and documents |
+| `docs/address_breakdown.png` | 32-bit address-field diagram for the video/report |
+| `docs/video_title.png` | Title slide with all five team members |
+| `docs/VIDEO_SCREEN_PLAN.md` | Speaker-by-speaker recording guide |
 | `docs/PHASE1_HANDOFF.md` | Report plan, video script, submission checklist |
 | `results/simulation.log` | Recorded passing simulation output |
 | `results/cache.vcd` | Waveform from the test run |
@@ -82,9 +85,9 @@ Phase I implements reads, lookup, valid-bit handling, block refill, hit/miss sta
 
 ## Team information
 
-Add the five members' names, actual contributions, report PDF, and prototype video link here before submission. Each member should commit their own work so the repository history reflects the work accurately.
+Add each member's actual contribution, the report PDF, and the prototype video link here before submission. Each member should commit their own work so the repository history reflects the work accurately.
 
-- **Members:** To be filled by the team.
+- **Members:** Naman Jain, Kavya Jain, Akhilesh Kumar, Lakshay Agrawal, Dhruv Ramani.
 - **Phase I report:** Add the file and link here.
 - **Prototype video:** Add the shareable video link here.
 
