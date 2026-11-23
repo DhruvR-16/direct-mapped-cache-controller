@@ -1,0 +1,86 @@
+{
+  "events": [
+    {
+      "sequence": 1,
+      "op": "R",
+      "address": "0x00000000",
+      "hit": false,
+      "read_data": "0xA5000000",
+      "write_data": null
+    },
+    {
+      "sequence": 2,
+      "op": "R",
+      "address": "0x00000004",
+      "hit": true,
+      "read_data": "0xA5000001",
+      "write_data": null
+    },
+    {
+      "sequence": 3,
+      "op": "W",
+      "address": "0x00000008",
+      "hit": true,
+      "read_data": null,
+      "write_data": "0x12345678"
+    },
+    {
+      "sequence": 4,
+      "op": "R",
+      "address": "0x00000008",
+      "hit": true,
+      "read_data": "0x12345678",
+      "write_data": null
+    },
+    {
+      "sequence": 5,
+      "op": "W",
+      "address": "0x00000400",
+      "hit": false,
+      "read_data": null,
+      "write_data": "0xDEADBEEF"
+    },
+    {
+      "sequence": 6,
+      "op": "R",
+      "address": "0x00000400",
+      "hit": true,
+      "read_data": "0xDEADBEEF",
+      "write_data": null
+    },
+    {
+      "sequence": 7,
+      "op": "R",
+      "address": "0x00000000",
+      "hit": false,
+      "read_data": "0xA5000000",
+      "write_data": null
+    },
+    {
+      "sequence": 8,
+      "op": "R",
+      "address": "0x00000400",
+      "hit": false,
+      "read_data": "0xDEADBEEF",
+      "write_data": null
+    },
+    {
+      "sequence": 9,
+      "op": "R",
+      "address": "0x00000400",
+      "hit": true,
+      "read_data": "0xDEADBEEF",
+      "write_data": null
+    }
+  ],
+  "summary": {
+    "accesses": 9,
+    "hits": 5,
+    "misses": 4,
+    "hit_rate_percent": 55.56,
+    "miss_rate_percent": 44.44,
+    "block_reads": 4,
+    "word_writes": 2,
+    "memory_bytes_transferred": 72
+  }
+}

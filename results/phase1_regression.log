@@ -1,0 +1,62 @@
+VCD info: dumpfile results/phase1_regression.vcd opened for output.
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000004 HIT  data=a5000001
+PASS addr=00000008 HIT  data=a5000002
+PASS addr=0000000c HIT  data=a5000003
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000000 HIT  data=a5000000
+SUMMARY directed     accesses=7 hits=4 misses=3 hit_rate=57.14% miss_rate=42.86% average_cycles=4.14
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000004 HIT  data=a5000001
+PASS addr=00000008 HIT  data=a5000002
+PASS addr=0000000c HIT  data=a5000003
+PASS addr=00000010 MISS data=a5000004
+PASS addr=00000014 HIT  data=a5000005
+PASS addr=00000018 HIT  data=a5000006
+PASS addr=0000001c HIT  data=a5000007
+PASS addr=00000020 MISS data=a5000008
+PASS addr=00000024 HIT  data=a5000009
+PASS addr=00000028 HIT  data=a500000a
+PASS addr=0000002c HIT  data=a500000b
+PASS addr=00000030 MISS data=a500000c
+PASS addr=00000034 HIT  data=a500000d
+PASS addr=00000038 HIT  data=a500000e
+PASS addr=0000003c HIT  data=a500000f
+SUMMARY sequential   accesses=16 hits=12 misses=4 hit_rate=75.00% miss_rate=25.00% average_cycles=3.25
+PASS addr=00000080 MISS data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+PASS addr=00000080 HIT  data=a5000020
+SUMMARY repeated     accesses=16 hits=15 misses=1 hit_rate=93.75% miss_rate=6.25% average_cycles=2.31
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+PASS addr=00000000 MISS data=a5000000
+PASS addr=00000400 MISS data=a5000100
+SUMMARY conflict     accesses=16 hits=0 misses=16 hit_rate=0.00% miss_rate=100.00% average_cycles=7.00
+ALL TESTS PASSED
+tb/tb_direct_mapped_cache.sv:161: $finish called at 2465000 (1ps)

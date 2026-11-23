@@ -1,0 +1,11 @@
+# Phase II reference sequence. Addresses and data are hexadecimal.
+# Expected hits: M H H H M H M M H (5 hits, 4 misses).
+R 0x00000000
+R 0x00000004
+W 0x00000008 0x12345678
+R 0x00000008
+W 0x00000400 0xDEADBEEF
+R 0x00000400
+R 0x00000000
+R 0x00000400
+R 0x00000400

@@ -18,6 +18,10 @@ module tb_direct_mapped_cache;
     logic [31:0] mem_req_addr;
     logic mem_resp_valid;
     logic [127:0] mem_resp_block;
+    logic mem_write_valid;
+    logic mem_write_ready;
+    logic [31:0] mem_write_addr;
+    logic [31:0] mem_write_data;
     logic [31:0] hit_count;
     logic [31:0] miss_count;
 
@@ -26,6 +30,7 @@ module tb_direct_mapped_cache;
     integer trace_accesses = 0;
     integer memory_requests = 0;
     integer i;
+    string vcd_path;
     always @(posedge clk) clock_count <= clock_count + 1;
     always @(posedge clk) begin
         if (!rst_n)
@@ -37,10 +42,13 @@ module tb_direct_mapped_cache;
     direct_mapped_cache dut (
         .clk(clk), .rst_n(rst_n),
         .req_valid(req_valid), .req_ready(req_ready), .req_addr(req_addr),
+        .req_write(1'b0), .req_wdata(32'b0),
         .resp_valid(resp_valid), .resp_data(resp_data), .resp_hit(resp_hit),
         .mem_req_valid(mem_req_valid), .mem_req_ready(mem_req_ready),
         .mem_req_addr(mem_req_addr), .mem_resp_valid(mem_resp_valid),
         .mem_resp_block(mem_resp_block),
+        .mem_write_valid(mem_write_valid), .mem_write_ready(mem_write_ready),
+        .mem_write_addr(mem_write_addr), .mem_write_data(mem_write_data),
         .hit_count(hit_count), .miss_count(miss_count)
     );
 
@@ -48,7 +56,9 @@ module tb_direct_mapped_cache;
         .clk(clk), .rst_n(rst_n),
         .req_valid(mem_req_valid), .req_ready(mem_req_ready),
         .req_addr(mem_req_addr), .resp_valid(mem_resp_valid),
-        .resp_block(mem_resp_block)
+        .resp_block(mem_resp_block),
+        .write_valid(mem_write_valid), .write_ready(mem_write_ready),
+        .write_addr(mem_write_addr), .write_data(mem_write_data)
     );
 
     task automatic reset_trace;
@@ -93,6 +103,7 @@ module tb_direct_mapped_cache;
                                  input integer expected_hits,
                                  input integer expected_misses);
         real hit_rate;
+        real miss_rate;
         real average_cycles;
         begin
             if (hit_count !== expected_hits || miss_count !== expected_misses)
@@ -103,15 +114,18 @@ module tb_direct_mapped_cache;
                 $fatal(1, "FAIL %s: memory reads=%0d expected=%0d",
                        label, memory_requests, expected_misses);
             hit_rate = 100.0 * hit_count / trace_accesses;
+            miss_rate = 100.0 * miss_count / trace_accesses;
             average_cycles = 1.0 * trace_cycles / trace_accesses;
-            $display("SUMMARY %-12s accesses=%0d hits=%0d misses=%0d hit_rate=%0.2f%% average_cycles=%0.2f",
+            $display("SUMMARY %-12s accesses=%0d hits=%0d misses=%0d hit_rate=%0.2f%% miss_rate=%0.2f%% average_cycles=%0.2f",
                      label, trace_accesses, hit_count, miss_count,
-                     hit_rate, average_cycles);
+                     hit_rate, miss_rate, average_cycles);
         end
     endtask
 
     initial begin
-        $dumpfile("results/cache.vcd");
+        if (!$value$plusargs("VCD=%s", vcd_path))
+            vcd_path = "results/cache.vcd";
+        $dumpfile(vcd_path);
         $dumpvars(0, tb_direct_mapped_cache);
 
         // Directed correctness cases, including conflict replacement.

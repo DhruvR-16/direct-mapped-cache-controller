@@ -1,0 +1,21 @@
+VCD info: dumpfile results/phase2_smoke.vcd opened for output.
+PASS2 op=READ  addr=00000000 MISS data=a5000000 cycles=7
+PASS2 op=READ  addr=00000004 HIT  data=a5000001 cycles=2
+PASS2 op=WRITE addr=00000008 HIT  data=00000000 cycles=3
+PASS2 op=READ  addr=00000008 HIT  data=12345678 cycles=2
+PASS2 op=WRITE addr=00000400 MISS data=00000000 cycles=8
+PASS2 op=READ  addr=00000400 HIT  data=deadbeef cycles=2
+PASS2 op=READ  addr=00000000 MISS data=a5000000 cycles=7
+PASS2 op=READ  addr=00000400 MISS data=deadbeef cycles=7
+PASS2 op=READ  addr=00000400 HIT  data=deadbeef cycles=2
+PHASE2 SUMMARY trace accesses=9 hits=5 misses=4 hit_rate=55.56% miss_rate=44.44% read_hits=4 read_misses=3 write_hits=1 write_misses=1 block_reads=4 word_writes=2 memory_bytes=72 average_cycles=4.44
+PASS2 op=READ  addr=00000400 MISS data=deadbeef cycles=7
+PASS2 op=READ  addr=00000008 MISS data=12345678 cycles=7
+PASS2 op=READ  addr=0000000c HIT  data=a5000003 cycles=2
+PASS2 op=WRITE addr=00000008 HIT  data=00000000 cycles=6
+PASS2 op=READ  addr=00000008 HIT  data=cafe1234 cycles=2
+PHASE2 SUMMARY after_reset accesses=5 hits=3 misses=2 hit_rate=60.00% miss_rate=40.00% read_hits=2 read_misses=2 write_hits=1 write_misses=0 block_reads=2 word_writes=1 memory_bytes=36 average_cycles=4.80
+PASS2 op=READ  addr=00000008 MISS data=cafe1234 cycles=7
+PHASE2 SUMMARY write_persisted accesses=1 hits=0 misses=1 hit_rate=0.00% miss_rate=100.00% read_hits=0 read_misses=1 write_hits=0 write_misses=0 block_reads=1 word_writes=0 memory_bytes=16 average_cycles=7.00
+PHASE2 ALL TESTS PASSED
+tb/tb_direct_mapped_cache_phase2.sv:238: $finish called at 835000 (1ps)
