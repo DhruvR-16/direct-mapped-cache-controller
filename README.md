@@ -1,96 +1,78 @@
-# Direct-Mapped Cache Controller — Phase I
+# Direct-Mapped Cache Controller
 
-This repository contains a **read-only, direct-mapped cache controller** written in SystemVerilog, a simulated main memory, and a self-checking testbench. It is the Phase I prototype for the Modern Computer Architecture project.
+This project implements a 1 KB direct-mapped cache in SystemVerilog. Phase I established and verified the read-only lookup/refill path. Phase II adds aligned 32-bit writes with a **write-through, write-allocate** policy, mixed-access verification, and measured simulation results. The cache RTL is synthesizable; the main-memory model and testbenches are simulation-only.
 
-![Architecture block diagram](docs/cache_block_diagram.png)
+## Reports and demonstration
 
-## Submission materials
+- [Complete IEEE report covering both phases](report/Direct_Mapped_Cache_Complete_IEEE_Report.pdf) and [editable LaTeX source](report/Direct_Mapped_Cache_Complete_IEEE_Report.tex)
+- [Phase I prototype video](video/mca-phase1.mp4)
+- [Phase II architecture diagram](docs/phase2_block_diagram.png)
+- [Phase II results](results/phase2_summary.md) and [team handoff](docs/phase2_implementation_plan.md)
+- [Phase II live demo and viva guide](docs/phase2_demo_and_viva.md)
 
-- [Prototype video — 2 minutes 53 seconds](video/mca-phase1.mp4)
-- [Phase I report PDF](report/Phase_I_IEEE_Report_With_Group_Names.pdf)
-- [Editable Phase I report](report/Phase_I_IEEE_Report_With_Group_Names.docx)
+The report describes the verified four-state Phase I read prototype and five-state Phase II read/write controller. The team must confirm actual individual contributions before formal submission; assigned roles in the report are not proof of authorship.
 
-The report is the current team-supplied draft. Its controller-state description and contribution statements need to be checked against the completed implementation before final submission.
-
-## Configuration
+## Architecture
 
 | Property | Value |
 |---|---:|
-| Address width | 32 bits |
-| Cache capacity | 1,024 bytes |
-| Block size | 16 bytes |
-| Lines | 64 |
+| CPU address and word | 32 bits each; 4-byte aligned |
+| Cache data capacity | 1,024 bytes |
+| Block size and line count | 16 bytes; 64 lines |
 | Words per block | 4 |
 | Tag / index / offset | 22 / 6 / 4 bits |
-| Simulated main-memory capacity | 4,096 bytes |
-| Simulated main-memory latency | 3 clock cycles |
+| Simulated main memory | 4,096 bytes; 3-cycle block read |
+| Outstanding CPU requests | 1 |
 
-Address mapping: `tag = address[31:10]`, `index = address[9:4]`, and `block offset = address[3:0]`. The CPU-side prototype supports **aligned 32-bit reads**. It accepts one request at a time. On a hit it returns the selected cached word; on a miss it requests an aligned 16-byte block, fills the indexed line, and returns the selected word. Reset clears all valid bits and the hit/miss counters. The data and tag arrays do not need reset because invalid lines are never used.
+Address mapping: `tag=address[31:10]`, `index=address[9:4]`, and `offset=address[3:0]`. Offset bits `[3:2]` select the 32-bit word. Each line stores a 128-bit block, a 22-bit tag, and a valid bit. Reset invalidates the cache and clears hit/miss counters; it does not erase words written to the test memory.
 
-The arrays hold 8,192 data bits, 1,408 tag bits, and 64 valid bits: **9,664 storage bits** before the controller and counters.
-
-The controller has four states: `IDLE` → `LOOKUP` → (`MISS_REQUEST` → `MISS_WAIT` on a miss) → `IDLE`. The `cache_line_store` module holds the data, tag, and valid arrays; `direct_mapped_cache` handles the lookup and memory handshake. The memory model is testbench-only; both cache RTL modules are synthesizable.
-
-| State | Action | Next state |
+| Operation | On a hit | On a miss |
 |---|---|---|
-| `IDLE` | Accept a request when `req_valid && req_ready` | `LOOKUP` |
-| `LOOKUP` | Compare valid bit and tag; return data on hit | `IDLE` on hit, `MISS_REQUEST` on miss |
-| `MISS_REQUEST` | Present the aligned block address until memory accepts it | `MISS_WAIT` |
-| `MISS_WAIT` | Wait for the returned block, refill the indexed line, and respond | `IDLE` |
+| Read | Return the cached word | Fetch the aligned 16-byte block, refill, return the word |
+| Write | Update one cached word and write the word to memory | Fetch the block, patch and refill it, then write the word to memory |
 
-## Run the prototype
+The controller uses `IDLE`, `LOOKUP`, `MISS_REQUEST`, `MISS_WAIT`, and `WRITE_REQUEST`. A write response is issued only after the main-memory word-write handshake. The memory model initializes word `i` to `0xA5000000+i` and preserves writes across cache reset.
 
-Install [Icarus Verilog](https://steveicarus.github.io/iverilog/) and run:
+The suggested Project 6 modules are grouped into two synthesizable RTL modules: `cache_line_store.sv` contains the data, tag, and valid arrays; `direct_mapped_cache.sv` contains address decoding, tag comparison, the FSM, and the main-memory interface. The simulated main-memory model is in `tb/main_memory_model.sv`.
+
+## Run and inspect
+
+Install Icarus Verilog, Python 3, and Yosys. Tectonic is also needed to rebuild the IEEE PDFs. From this folder:
 
 ```sh
-make test
+make test                 # Phase I read-only regression on the Phase II RTL
+make phase2-test          # directed and seeded mixed read/write traces
+make synth               # generic synthesis of the cache RTL
+make reports             # rebuild the single IEEE-format PDF
 ```
 
-The command compiles the modules, runs the self-checking testbench, writes the console output to `results/simulation.log`, and writes a VCD waveform to `results/cache.vcd`. Open the VCD in GTKWave or another waveform viewer. A failing data, hit/miss, counter, or memory-request check terminates the run with an error.
+`make phase2-test` regenerates expected vectors with `analysis/cache_reference.py`, compiles the RTL/testbench, and checks each operation. Inspect `results/phase2_smoke.log`, `results/phase2_random.log`, and `results/random_read.log` for `PHASE2 ALL TESTS PASSED`. Open the matching VCD files in GTKWave to show request, response, refill, and write handshakes. The mixed trace is reproducible with `python3 analysis/generate_random_trace.py --seed 20261123 --count 128`; the uniform random-read trace uses `--mode read-random` with the same seed.
 
-## Verified simulation results
+## Measured results
 
-The testbench resets the cache between traces. “Average cycles” measures cycles from request issue to response under the included 3-cycle main-memory model; it is specific to this RTL handshake and testbench. For these traces, hits take 2 measured cycles and misses take 7.
-
-| Trace | Accesses | Hits | Misses | Hit rate | Average cycles/access |
+| Trace | Accesses | Hits | Misses | Hit / miss ratio | Avg. cycles/access |
 |---|---:|---:|---:|---:|---:|
-| Directed correctness | 7 | 4 | 3 | 57.14% | 4.14 |
-| Sequential words | 16 | 12 | 4 | 75.00% | 3.25 |
-| Repeated address | 16 | 15 | 1 | 93.75% | 2.31 |
-| Alternating conflict | 16 | 0 | 16 | 0.00% | 7.00 |
+| Phase I sequential reads | 16 | 12 | 4 | 75.00% / 25.00% | 3.25 |
+| Phase I repeated reads | 16 | 15 | 1 | 93.75% / 6.25% | 2.31 |
+| Phase I alternating conflict | 16 | 0 | 16 | 0.00% / 100.00% | 7.00 |
+| Uniform random reads | 128 | 13 | 115 | 10.16% / 89.84% | 6.49 |
+| Phase II directed mixed | 9 | 5 | 4 | 55.56% / 44.44% | 4.44 |
+| Phase II seeded mixed | 128 | 83 | 45 | 64.84% / 35.16% | 4.06 |
 
-The sequential trace reads four words from each of four blocks. Its first access to each block misses; the next three hit. The repeated trace has one compulsory miss followed by fifteen hits. The conflict trace alternates `0x00000000` and `0x00000400`, which have the same index but different tags, so each access evicts the previous line.
+The Phase II seeded trace contains 89 reads and 39 writes. It causes 45 block reads and 39 word writes, transferring 876 bytes under the model. Generic Yosys synthesis reports zero design-check problems and 55,448 technology-independent cells for the Phase II RTL. No target-specific frequency result is claimed. See the detailed [hit/miss and AMAT report](results/phase2_summary.md) and [synthesis summary](results/synthesis_summary.md).
 
-The conflict trace is an **always-miss comparison** using the same controller and memory model: it averages 7.00 cycles per access. Sequential and repeated traces average 3.25 and 2.31 cycles because they have more hits. These are trace-level simulation measurements, not a comparison with a separately implemented uncached architecture or a hardware clock-frequency claim.
-
-## Generic synthesis check
-
-Run `make synth` to synthesize the cache modules with Yosys. The current generic synthesis completed with **0 design-check problems** and reported **29,525 cells** (including one scope-information pseudo cell); see `results/synthesis_summary.md` and the full `results/synthesis.log`. Yosys flattened the line arrays into registers in this technology-independent flow. These numbers are **not FPGA LUT/BRAM utilization** and do not provide a maximum clock frequency. FPGA-targeted synthesis and timing analysis need an actual target device and tool flow.
-
-## Repository contents
+## Main files
 
 | Path | Purpose |
 |---|---|
-| `rtl/cache_line_store.sv` | Synthesizable data/tag/valid storage |
-| `rtl/direct_mapped_cache.sv` | Synthesizable controller and memory interface |
-| `tb/main_memory_model.sv` | Testbench-only memory with fixed latency |
-| `tb/tb_direct_mapped_cache.sv` | Self-checking directed and trace tests |
-| `docs/cache_block_diagram.png` | Architecture diagram for the report/video |
-| `docs/address_breakdown.png` | 32-bit address-field diagram for the video/report |
-| `report/` | Team-supplied report in PDF and editable DOCX formats |
-| `video/mca-phase1.mp4` | Recorded prototype demonstration |
-| `results/simulation.log` | Recorded passing simulation output |
-| `results/cache.vcd` | Waveform from the test run |
-| `results/synthesis_summary.md` | Generic synthesis result and limitations |
-| `results/synthesis.log` | Full generic synthesis output |
+| `rtl/direct_mapped_cache.sv` | Synthesizable five-state cache controller |
+| `rtl/cache_line_store.sv` | Synthesizable data/tag/valid line storage |
+| `tb/main_memory_model.sv` | Simulation-only memory with block reads and word writes |
+| `tb/tb_direct_mapped_cache.sv` | Phase I regression testbench |
+| `tb/tb_direct_mapped_cache_phase2.sv` | Phase II mixed-access self-checking testbench |
+| `analysis/cache_reference.py` | Independent expected-data and hit/miss model |
+| `analysis/generate_random_trace.py` | Deterministic mixed-trace generator |
+| `traces/` | Directed and seeded mixed-access traces |
+| `results/` | Logs, reference vectors, synthesis output, and VCD waveforms |
 
-## Scope and next phase
-
-Phase I implements reads, lookup, valid-bit handling, block refill, hit/miss statistics, simulation evidence, and a generic synthesis check. Phase II can add a documented write policy (for example, write-through with write-allocate), broader verification, FPGA-targeted timing/resource results, and the final results/discussion section. Do not describe write operations or FPGA deployment as completed Phase I features.
-
-## Team information
-
-Each member should commit their own meaningful work so the repository history reflects the work accurately.
-
-- **Members:** Naman Jain, Kavya Jain, Akhilesh Kumar, Lakshay Agrawal, Dhruv Ramani.
-
+The repository and group contribution history require each member's own verified work and commits. This local build does not attribute files to individual members.
