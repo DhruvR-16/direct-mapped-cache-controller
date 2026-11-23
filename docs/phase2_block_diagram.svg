@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="460" viewBox="0 0 1000 460">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#243855"/></marker>
+    <style>
+      text{font-family:Arial,sans-serif;fill:#172a45} .title{font-size:25px;font-weight:700} .head{font-size:20px;font-weight:700} .body{font-size:16px} .line{stroke:#243855;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1000" height="460" fill="#ffffff"/>
+  <text x="36" y="42" class="title">Phase II direct-mapped cache: write-through, write-allocate</text>
+  <rect x="30" y="145" width="200" height="175" rx="14" fill="#eef3fa" stroke="#294b77" stroke-width="2"/>
+  <text x="60" y="182" class="head">CPU requester</text>
+  <text x="48" y="221" class="body">Aligned read / write</text>
+  <text x="48" y="250" class="body">32-bit address + word</text>
+  <text x="48" y="279" class="body">Data, hit, valid response</text>
+  <rect x="325" y="110" width="330" height="255" rx="16" fill="#eaf2ff" stroke="#2957a1" stroke-width="2"/>
+  <text x="358" y="148" class="head">Cache controller</text>
+  <text x="348" y="180" class="body">Tag compare + 5-state FSM</text>
+  <rect x="350" y="205" width="280" height="125" rx="11" fill="#ffffff" stroke="#2957a1" stroke-width="2"/>
+  <text x="374" y="241" class="head">Line store</text>
+  <text x="370" y="270" class="body">64 lines x 16 bytes</text>
+  <text x="370" y="297" class="body">Data + tag + valid bit</text>
+  <rect x="748" y="145" width="220" height="175" rx="14" fill="#eef8ed" stroke="#348046" stroke-width="2"/>
+  <text x="774" y="182" class="head">Main memory</text>
+  <text x="766" y="220" class="body">16-byte block reads</text>
+  <text x="766" y="250" class="body">32-bit word writes</text>
+  <text x="766" y="279" class="body">Retains writes on reset</text>
+  <path d="M230 195 H325" class="line"/>
+  <text x="238" y="181" class="body">request</text>
+  <path d="M325 284 H230" class="line"/>
+  <text x="239" y="308" class="body">response</text>
+  <path d="M655 189 H748" class="line"/>
+  <text x="667" y="175" class="body">read / write</text>
+  <path d="M748 282 H655" class="line"/>
+  <text x="671" y="306" class="body">block refill</text>
+  <text x="33" y="414" class="body">Address: tag [31:10] | index [9:4] | offset [3:0]. One CPU request is outstanding at a time.</text>
+</svg>
