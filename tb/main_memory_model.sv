@@ -1,6 +1,4 @@
-`timescale 1ns/1ps
-// Testbench-only main memory: deterministic word contents and fixed latency.
-// This is deliberately separate from the synthesizable cache controller.
+
 module main_memory_model #(
     parameter int ADDR_WIDTH   = 32,
     parameter int DATA_WIDTH   = 32,
@@ -14,7 +12,11 @@ module main_memory_model #(
     output logic                         req_ready,
     input  logic [ADDR_WIDTH-1:0]        req_addr,
     output logic                         resp_valid,
-    output logic [BLOCK_BYTES*8-1:0]     resp_block
+    output logic [BLOCK_BYTES*8-1:0]     resp_block,
+    input  logic                         write_valid,
+    output logic                         write_ready,
+    input  logic [ADDR_WIDTH-1:0]        write_addr,
+    input  logic [DATA_WIDTH-1:0]        write_data
 );
     localparam int WORD_BYTES = DATA_WIDTH / 8;
     localparam int WORD_COUNT = MEMORY_BYTES / WORD_BYTES;
@@ -32,7 +34,8 @@ module main_memory_model #(
             words[i] = 32'hA500_0000 + i;
     end
 
-    assign req_ready = !busy;
+    assign req_ready = !busy && !write_valid;
+    assign write_ready = !busy && !req_valid;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -43,7 +46,13 @@ module main_memory_model #(
             resp_valid <= 1'b0;
         end else begin
             resp_valid <= 1'b0;
-            if (req_valid && req_ready) begin
+            if (req_valid && write_valid)
+                $fatal(1, "Simultaneous block read and word write");
+            if (write_valid && write_ready) begin
+                if (write_addr % WORD_BYTES != 0 || write_addr >= MEMORY_BYTES)
+                    $fatal(1, "Invalid main-memory word write: %08h", write_addr);
+                words[write_addr / WORD_BYTES] <= write_data;
+            end else if (req_valid && req_ready) begin
                 if (req_addr % BLOCK_BYTES != 0 || req_addr >= MEMORY_BYTES)
                     $fatal(1, "Invalid main-memory block request: %08h", req_addr);
                 busy <= 1'b1;
