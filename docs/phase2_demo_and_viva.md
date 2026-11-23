@@ -1,19 +1,18 @@
-# Phase II demonstration and viva guide
+# Complete project demonstration and viva guide
 
 ## What the project does
 
 The project is a 1 KB direct-mapped cache controller for aligned 32-bit CPU reads and writes. It has 64 lines of 16 bytes each. The address split is tag `[31:10]`, index `[9:4]`, offset `[3:0]`. Bits `[3:2]` select one of four words in a line. A valid line with a matching tag is a hit; otherwise the controller fetches the mapped block and replaces that line.
 
-Phase I demonstrated only reads. Phase II implements write-through, write-allocate: every write goes to main memory, and a write miss fetches and installs the block before updating the requested word. The cache accepts one CPU request at a time. The five implemented states are `IDLE`, `LOOKUP`, `MISS_REQUEST`, `MISS_WAIT`, and `WRITE_REQUEST`.
+The final controller implements write-through, write-allocate: every write goes to main memory, and a write miss fetches and installs the block before updating the requested word. The cache accepts one CPU request at a time. The five implemented states are `IDLE`, `LOOKUP`, `MISS_REQUEST`, `MISS_WAIT`, and `WRITE_REQUEST`.
 
 ## Live demonstration (about 5 minutes)
 
-1. Open `docs/phase2_block_diagram.png`. Explain the CPU request/response, controller FSM, line storage, and simulated main memory. State that the memory model is for simulation and is not part of the synthesizable cache.
-2. Run `make test`. Point to `ALL TESTS PASSED` and the sequential/repeated/conflict summaries. Explain why `0x00000000` and `0x00000400` conflict: their index bits match, but their tags differ.
-3. Run `make phase2-test`. Point to `PHASE2 ALL TESTS PASSED` in the directed, mixed, and uniform random-read logs. In the directed log, show a write hit at `0x8`, a write miss at `0x400`, and the post-reset readback of both written values.
-4. Open `results/phase2_smoke.vcd` in GTKWave. Show `req_valid/req_ready`, `req_write/req_wdata`, `mem_req_valid/mem_req_ready`, `mem_resp_valid`, `mem_write_valid/mem_write_ready`, `resp_valid/resp_hit`, and the hit/miss counters. During the write stall, explain why `mem_write_addr` and `mem_write_data` remain stable and why the CPU response waits.
-5. Open `results/phase2_summary.md`. Compare sequential (75.00% hits), repeated (93.75%), and uniform random reads (10.16%) to explain locality. For the 128-operation mixed trace, explain 83 hits, 45 misses, 64.84% hit ratio, 35.16% miss ratio, and 4.0625 measured cycles/access. State that the cycle values depend on the included three-cycle memory model.
-6. Run `make synth` only if time permits. Explain that generic Yosys synthesis reports zero design-check problems and 55,448 generic cells. It does not provide FPGA LUT/BRAM usage or maximum frequency without a device-specific tool flow.
+1. Open `docs/phase2_block_diagram.png`. Explain the CPU request/response, controller FSM, line storage, and simulated main memory.
+2. Run **`make test` once**. Show `PROJECT ALL TESTS PASSED`, `SYNTHESIS CHECK PASSED: 0 problems`, and `PROJECT TEST PASSED`. The single run verifies 317 accesses plus reset and write-stall checks.
+3. Open **`results/full_project.vcd`** in Surfer. Show `req_valid/req_ready`, `req_addr`, `req_write/req_wdata`, `resp_valid/resp_hit`, `mem_req_valid/mem_req_ready`, `mem_resp_valid`, `mem_write_valid/mem_write_ready`, and hit/miss counters. Explain a read hit, a refill, a write, and a stalled write in one timeline.
+4. Open `results/full_project.log` and `results/phase2_summary.md`. Explain the integrated result: 137 hits and 180 misses across 317 accesses, a 43.22% hit ratio, and 4.98 measured cycles/access. The detailed trace table shows how sequential, repeated, random, and conflict patterns affect locality.
+5. State that the cycle values depend on the included three-cycle memory model. Generic synthesis checks the RTL but does not give a target FPGA frequency.
 
 ## Questions each member should be able to answer
 

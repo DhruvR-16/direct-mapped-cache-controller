@@ -1,13 +1,13 @@
-# Generic synthesis result
+# Generic synthesis result - Phase II
 
-Command: `make synth` (Yosys 0.71, `read_verilog -sv; hierarchy; synth -flatten; stat`)
+Command: `make synth`, Yosys 0.71+post, `read_verilog -sv; hierarchy -top direct_mapped_cache; synth -top direct_mapped_cache -flatten; stat`.
 
-| Reported item | Value |
-|---|---:|
-| Design-check problems | 0 |
-| Reported cells | 29,525 (including one scope-information pseudo cell) |
-| Enabled flip-flop cells (`$_DFFE_PP_`) | 9,600 |
-| Enabled resettable flip-flop cells (`$_DFFE_PN0P_`) | 191 |
-| Plain/resettable flip-flop cells (other DFF types) | 5 |
+| Reported item | Phase I read-only | Phase II read/write |
+|---|---:|---:|
+| Design-check problems | 0 | 0 |
+| Generic cells (includes one scope-information pseudo cell) | 29,525 | 55,448 |
+| Enabled flip-flop cells (`$_DFFE_PP_`) | 9,600 | 9,600 |
 
-This run synthesized both cache RTL modules; it did not include the testbench-only memory model. Yosys flattened the data, tag, and valid arrays into registers in this generic flow. The cell counts are **not** mapped FPGA LUT/flip-flop/BRAM utilization. No target FPGA, timing constraint, or technology library was supplied, so there is **no maximum operating frequency result**. Full tool output is in `synthesis.log`.
+The Phase I log is `results/phase1_synthesis.log`; the current Phase II log is `results/synthesis.log`. Both synthesize only `rtl/cache_line_store.sv` and `rtl/direct_mapped_cache.sv`, not the testbench memory model. The increased generic cell count reflects the added word-update and write-control logic in this flow. It is **not** a target-device area or performance measurement.
+
+No FPGA target, technology library, or clock constraint was supplied. These outputs do **not** report FPGA LUT/flip-flop/BRAM utilization or maximum operating frequency. A device-specific tool flow is required for those claims.

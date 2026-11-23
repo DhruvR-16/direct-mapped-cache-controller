@@ -151,7 +151,7 @@ module tb_direct_mapped_cache_phase2;
                 if (expected_hit != 0) read_hits = read_hits + 1;
                 else read_misses = read_misses + 1;
             end
-            $display("PASS2 op=%s addr=%08h %s data=%08h cycles=%0d",
+            $display("PASS op=%s addr=%08h %s data=%08h cycles=%0d",
                      is_write ? "WRITE" : "READ ", address,
                      expected_hit ? "HIT " : "MISS", resp_data, latency);
         end
@@ -165,7 +165,7 @@ module tb_direct_mapped_cache_phase2;
             hit_rate = accesses ? 100.0 * expected_hits / accesses : 0.0;
             miss_rate = accesses ? 100.0 * expected_misses / accesses : 0.0;
             average_cycles = accesses ? 1.0 * total_cycles / accesses : 0.0;
-            $display("PHASE2 SUMMARY %s accesses=%0d hits=%0d misses=%0d hit_rate=%0.2f%% miss_rate=%0.2f%% read_hits=%0d read_misses=%0d write_hits=%0d write_misses=%0d block_reads=%0d word_writes=%0d memory_bytes=%0d average_cycles=%0.2f",
+            $display("PROJECT SUMMARY %s accesses=%0d hits=%0d misses=%0d hit_rate=%0.2f%% miss_rate=%0.2f%% read_hits=%0d read_misses=%0d write_hits=%0d write_misses=%0d block_reads=%0d word_writes=%0d memory_bytes=%0d average_cycles=%0.2f",
                      label, accesses, expected_hits, expected_misses, hit_rate, miss_rate,
                      read_hits, read_misses, write_hits, write_misses,
                      block_reads, word_writes, block_reads*16 + word_writes*4,
@@ -185,11 +185,11 @@ module tb_direct_mapped_cache_phase2;
 
     initial begin
         if (!$value$plusargs("VCD=%s", vcd_path))
-            vcd_path = "results/phase2.vcd";
+            vcd_path = "results/full_project.vcd";
         $dumpfile(vcd_path);
         $dumpvars(0, tb_direct_mapped_cache_phase2);
         if (!$value$plusargs("VECTORS=%s", vector_path))
-            vector_path = "results/phase2_vectors.txt";
+            vector_path = "results/full_project_vectors.txt";
         fd = $fopen(vector_path, "r");
         if (!fd)
             $fatal(1, "Cannot open vector file: %s", vector_path);
@@ -206,7 +206,7 @@ module tb_direct_mapped_cache_phase2;
         $fclose(fd);
         show_summary("trace");
 
-        if ($test$plusargs("SMOKE")) begin
+        if ($test$plusargs("FULL_CHECKS")) begin
             // Cache reset must retain writes already accepted by main memory.
             reset_cache();
             request_and_check(0, 32'h0000_0400, 0, 0, 32'hDEAD_BEEF);
@@ -234,12 +234,12 @@ module tb_direct_mapped_cache_phase2;
             request_and_check(0, 32'h0000_0008, 0, 0, 32'hCAFE_1234);
             show_summary("write_persisted");
         end
-        $display("PHASE2 ALL TESTS PASSED");
+        $display("PROJECT ALL TESTS PASSED");
         $finish;
     end
 
     initial begin
         #5000000;
-        $fatal(1, "Phase II simulation timeout");
+        $fatal(1, "Project simulation timeout");
     end
 endmodule
