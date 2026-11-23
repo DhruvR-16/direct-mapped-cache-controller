@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// Phase I: read-only, direct-mapped cache with a block-refill memory interface.
+// Direct-mapped cache with write-through, write-allocate writes.
 // Requests must be aligned to DATA_WIDTH/8 bytes. One request is outstanding.
 module direct_mapped_cache #(
     parameter int ADDR_WIDTH  = 32,
@@ -13,6 +13,8 @@ module direct_mapped_cache #(
     input  logic                          req_valid,
     output logic                          req_ready,
     input  logic [ADDR_WIDTH-1:0]         req_addr,
+    input  logic                          req_write,
+    input  logic [DATA_WIDTH-1:0]         req_wdata,
     output logic                          resp_valid,
     output logic [DATA_WIDTH-1:0]         resp_data,
     output logic                          resp_hit,
@@ -23,6 +25,11 @@ module direct_mapped_cache #(
     input  logic                          mem_resp_valid,
     input  logic [BLOCK_BYTES*8-1:0]      mem_resp_block,
 
+    output logic                          mem_write_valid,
+    input  logic                          mem_write_ready,
+    output logic [ADDR_WIDTH-1:0]         mem_write_addr,
+    output logic [DATA_WIDTH-1:0]         mem_write_data,
+
     output logic [31:0]                   hit_count,
     output logic [31:0]                   miss_count
 );
@@ -32,13 +39,17 @@ module direct_mapped_cache #(
     localparam int TAG_BITS    = ADDR_WIDTH - INDEX_BITS - OFFSET_BITS;
     localparam int WORD_BYTES  = DATA_WIDTH / 8;
 
-    typedef enum logic [1:0] {
-        IDLE, LOOKUP, MISS_REQUEST, MISS_WAIT
+    typedef enum logic [2:0] {
+        IDLE, LOOKUP, MISS_REQUEST, MISS_WAIT, WRITE_REQUEST
     } state_t;
 
     state_t state;
     logic [ADDR_WIDTH-1:0] pending_addr;
+    logic pending_write;
+    logic [DATA_WIDTH-1:0] pending_wdata;
+    logic pending_hit;
     logic [BLOCK_BYTES*8-1:0] selected_block;
+    logic [BLOCK_BYTES*8-1:0] refill_block;
     logic [TAG_BITS-1:0] selected_tag;
     logic selected_valid;
 
@@ -54,23 +65,41 @@ module direct_mapped_cache #(
     assign mem_req_addr = {
         pending_addr[ADDR_WIDTH-1:OFFSET_BITS], {OFFSET_BITS{1'b0}}
     };
+    assign mem_write_valid = (state == WRITE_REQUEST);
+    assign mem_write_addr = pending_addr;
+    assign mem_write_data = pending_wdata;
+
+    always_comb begin
+        refill_block = mem_resp_block;
+        if (pending_write)
+            refill_block[(pending_offset / WORD_BYTES)*DATA_WIDTH +: DATA_WIDTH]
+                = pending_wdata;
+    end
 
     cache_line_store #(
         .BLOCK_BITS(BLOCK_BYTES*8), .LINE_COUNT(LINE_COUNT),
-        .INDEX_BITS(INDEX_BITS), .TAG_BITS(TAG_BITS)
+        .INDEX_BITS(INDEX_BITS), .TAG_BITS(TAG_BITS),
+        .WORD_BITS(DATA_WIDTH), .WORD_SELECT_BITS($clog2(BLOCK_BYTES/WORD_BYTES))
     ) lines (
         .clk(clk), .rst_n(rst_n),
         .read_index(pending_index), .read_block(selected_block),
         .read_tag(selected_tag), .read_valid(selected_valid),
         .refill_en(state == MISS_WAIT && mem_resp_valid),
-        .refill_index(pending_index), .refill_block(mem_resp_block),
-        .refill_tag(pending_tag)
+        .refill_index(pending_index), .refill_block(refill_block),
+        .refill_tag(pending_tag),
+        .word_write_en(state == WRITE_REQUEST && mem_write_ready && pending_hit),
+        .word_write_index(pending_index),
+        .word_write_select(pending_offset[OFFSET_BITS-1:$clog2(WORD_BYTES)]),
+        .word_write_data(pending_wdata)
     );
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
             pending_addr <= '0;
+            pending_write <= 1'b0;
+            pending_wdata <= '0;
+            pending_hit <= 1'b0;
             resp_valid <= 1'b0;
             resp_data <= '0;
             resp_hit <= 1'b0;
@@ -84,20 +113,28 @@ module direct_mapped_cache #(
                 IDLE: begin
                     if (req_valid) begin
                         pending_addr <= req_addr;
+                        pending_write <= req_write;
+                        pending_wdata <= req_wdata;
                         state <= LOOKUP;
                     end
                 end
 
                 LOOKUP: begin
                     if (selected_valid && selected_tag == pending_tag) begin
-                        resp_data <= selected_block
-                            [pending_offset / WORD_BYTES * DATA_WIDTH +: DATA_WIDTH];
-                        resp_hit <= 1'b1;
-                        resp_valid <= 1'b1;
                         hit_count <= hit_count + 1'b1;
-                        state <= IDLE;
+                        if (pending_write) begin
+                            pending_hit <= 1'b1;
+                            state <= WRITE_REQUEST;
+                        end else begin
+                            resp_data <= selected_block
+                                [(pending_offset / WORD_BYTES)*DATA_WIDTH +: DATA_WIDTH];
+                            resp_hit <= 1'b1;
+                            resp_valid <= 1'b1;
+                            state <= IDLE;
+                        end
                     end else begin
                         miss_count <= miss_count + 1'b1;
+                        pending_hit <= 1'b0;
                         state <= MISS_REQUEST;
                     end
                 end
@@ -109,9 +146,22 @@ module direct_mapped_cache #(
 
                 MISS_WAIT: begin
                     if (mem_resp_valid) begin
-                        resp_data <= mem_resp_block
-                            [pending_offset / WORD_BYTES * DATA_WIDTH +: DATA_WIDTH];
-                        resp_hit <= 1'b0;
+                        if (pending_write) begin
+                            state <= WRITE_REQUEST;
+                        end else begin
+                            resp_data <= mem_resp_block
+                                [(pending_offset / WORD_BYTES)*DATA_WIDTH +: DATA_WIDTH];
+                            resp_hit <= 1'b0;
+                            resp_valid <= 1'b1;
+                            state <= IDLE;
+                        end
+                    end
+                end
+
+                WRITE_REQUEST: begin
+                    if (mem_write_ready) begin
+                        resp_data <= '0;
+                        resp_hit <= pending_hit;
                         resp_valid <= 1'b1;
                         state <= IDLE;
                     end
